@@ -1,0 +1,25 @@
+/* Stylizacja tabeli */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+/* Stylizacja nagłówków */
+th {
+    background-color: #f2f2f2;
+    border: 1px solid #dddddd;
+    padding: 8px;
+    text-align: left;
+}
+
+/* Stylizacja wierszy */
+tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+/* Stylizacja komórek */
+td {
+    border: 1px solid #dddddd;
+    padding: 8px;
+}
