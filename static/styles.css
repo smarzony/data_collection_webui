@@ -20,6 +20,6 @@ tr:nth-child(even) {
 
 /* Stylizacja komórek */
 td {
-    border: 1px solid #dddddd;
+    border: 1px solid #ce4949;
     padding: 8px;
 }
