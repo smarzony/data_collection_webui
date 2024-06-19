@@ -72,7 +72,11 @@ def fetch_data():
     cursor.close()
     connection.close()
 
+    # Zaokrąglanie wartości L1_VALUE, L2_VALUE, L3_VALUE do liczb całkowitych
     for entry in data:
+        entry['L1_VALUE'] = str(round(entry['L1_VALUE'])) + ' A'
+        entry['L2_VALUE'] = str(round(entry['L2_VALUE'])) + ' A'
+        entry['L3_VALUE'] = str(round(entry['L3_VALUE'])) + ' A'
         entry['TIME'] = entry['TIME'].strftime('%Y-%m-%d %H:%M:%S')
 
     return jsonify(data)
@@ -83,30 +87,36 @@ def fetch_chart_data():
     location = request.args.get('location')
     start_date = request.args.get('start_date')
     end_date = request.args.get('end_date')
+    total_samples = 100
 
-    query = "SELECT * FROM acquired_data"
-    filters = []
-    params = []
+    print(f"Received params - MAC: {mac_address}, Location: {location}, Start: {start_date}, End: {end_date}")
 
-    if mac_address:
-        filters.append("mac = %s")
-        params.append(mac_address)
-    if location:
-        filters.append("location = %s")
-        params.append(location)
-    if start_date and end_date:
-        filters.append("TIME BETWEEN %s AND %s")
-        params.extend([start_date, end_date])
+    query = """
+    WITH OrderedData AS (
+        SELECT *, ROW_NUMBER() OVER (ORDER BY time) AS rownum
+        FROM acquired_data
+        WHERE MAC = %s AND LOCATION = %s AND TIME BETWEEN %s AND %s
+    ), TotalRows AS (
+        SELECT COUNT(*) as total_count FROM OrderedData
+    )
+    SELECT * FROM OrderedData, TotalRows
+    WHERE OrderedData.rownum % FLOOR(total_count / %s) = 0;
+    """
 
-    if filters:
-        query += " WHERE " + " AND ".join(filters)
-    
-    query += " ORDER BY TIME DESC"
-
+    params = [mac_address, location, start_date, end_date, total_samples]
     connection = create_db_connection()
     cursor = connection.cursor(dictionary=True)
     cursor.execute(query, params)
     data = cursor.fetchall()
+    print(f"Query returned {len(data)} records")
+    max_print = 3
+    current_print = 0
+    for entry in data:
+        print(entry)
+        current_print += 1
+        if current_print >= max_print:
+            break
+
     cursor.close()
     connection.close()
 

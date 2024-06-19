@@ -17,54 +17,44 @@ $(document).ready(function() {
         const l1Values = data.map(entry => entry[L1_VALUE_FIELD]).reverse();
         const l2Values = data.map(entry => entry[L2_VALUE_FIELD]).reverse();
         const l3Values = data.map(entry => entry[L3_VALUE_FIELD]).reverse();
-
+    
         const ctx = document.getElementById('myChart').getContext('2d');
-
-        if (chartInstance) {
-            console.log("Destroying existing chart instance");
-            chartInstance.destroy();
-        }
-
-        console.log("Creating new chart instance with labels:", labels);
-        console.log("Creating new chart instance with values:", l1Values, l2Values, l3Values);
-
-        chartInstance = new Chart(ctx, {
+        const chart = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: labels,
-                datasets: [
-                    {
-                        label: 'L1 Value',
-                        data: l1Values,
-                        borderColor: 'rgb(75, 192, 192)',
-                        tension: 0.1
-                    },
-                    {
-                        label: 'L2 Value',
-                        data: l2Values,
-                        borderColor: 'rgb(192, 75, 75)',
-                        tension: 0.1
-                    },
-                    {
-                        label: 'L3 Value',
-                        data: l3Values,
-                        borderColor: 'rgb(75, 75, 192)',
-                        tension: 0.1
-                    }
-                ]
+                datasets: [{
+                    label: 'L1 Value',
+                    data: l1Values,
+                    borderColor: 'rgb(255, 99, 132)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                }, {
+                    label: 'L2 Value',
+                    data: l2Values,
+                    borderColor: 'rgb(54, 162, 235)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                }, {
+                    label: 'L3 Value',
+                    data: l3Values,
+                    borderColor: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                }]
             },
             options: {
                 scales: {
                     x: {
                         type: 'time',
                         time: {
-                            unit: 'minute'
+                            parser: 'YYYY-MM-DD HH:mm:ss',  // Dodaj parser, jeśli używasz niestandardowego formatu
+                            tooltipFormat: 'll HH:mm'
                         },
-                        adapters: {
-                            date: {
-                                locale: dateFns
-                            }
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Date'
                         }
+                    },
+                    y: {
+                        beginAtZero: true
                     }
                 }
             }
@@ -92,53 +82,6 @@ $(document).ready(function() {
         fetchDataForChart(macAddress, location, startDate, endDate);
     });
 
-    // document.getElementById('chart-form').addEventListener('submit', function(event) {
-    //     event.preventDefault();
-    
-    //     const macAddress = document.getElementById('mac-address-chart').value;
-    //     const location = document.getElementById('location-chart').value;
-    //     const startDate = document.getElementById('start-date-chart').value;
-    //     const endDate = document.getElementById('end-date-chart').value;
-    
-    //     fetchDataForChart(macAddress, location, startDate, endDate);
-    // });
-
-    // document.addEventListener('DOMContentLoaded', function() {
-    //     const endDate = new Date();
-    //     const startDate = new Date(endDate.getTime() - (6 * 60 * 60 * 1000)); // 6 godzin wstecz
-    
-    //     document.getElementById('end-date-chart').value = endDate.toISOString().slice(0, 16);
-    //     document.getElementById('start-date-chart').value = startDate.toISOString().slice(0, 16);
-    // });
-
-    // function loadOptions() {
-    //     $.ajax({
-    //         url: '/get_mac_and_locations',
-    //         type: 'GET',
-    //         dataType: 'json',
-    //         success: function(data) {
-    //             console.log("Received data:", data);  // Dodaj logowanie otrzymanych danych
-    //             const macSelect = document.getElementById('mac-address-chart');
-    //             const locationSelect = document.getElementById('location-chart');
-    
-    //             data.macs.forEach(mac => {
-    //                 const option = new Option(mac, mac);
-    //                 macSelect.appendChild(option);
-    //             });
-    
-    //             data.locations.forEach(location => {
-    //                 const option = new Option(location, location);
-    //                 locationSelect.appendChild(option);
-    //             });
-    //         },
-    //         error: function(xhr, status, error) {
-    //             console.error("Failed to load MAC addresses and locations:", status, error);
-    //         }
-    //     });
-    // }
-    
-    // document.addEventListener('DOMContentLoaded', loadOptions);
-
     function fetchData(numRecords, macAddress, location) {
         $.ajax({
             url: '/fetch_data',
@@ -152,7 +95,7 @@ $(document).ready(function() {
             success: function(data) {
                 console.log("Fetched data: ", data);
                 renderTable(data);
-                drawChart(data);
+                // drawChart(data);
             },
             error: function(xhr, status, error) {
                 console.error("Failed to fetch data:", status, error);
@@ -212,7 +155,6 @@ $(document).ready(function() {
             tbody.append(row);
         });
     }
-
     // Fetch data on page load
     $('#record-form').submit();
     setInterval(function() {
