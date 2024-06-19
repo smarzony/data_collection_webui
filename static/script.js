@@ -12,10 +12,11 @@ $(document).ready(function() {
         // Sortowanie danych od najstarszych do najnowszych
         data.sort((a, b) => new Date(a[TIME_FIELD]) - new Date(b[TIME_FIELD]));
 
-        const labels = data.map(entry => entry[TIME_FIELD]);
-        const l1Values = data.map(entry => entry[L1_VALUE_FIELD]);
-        const l2Values = data.map(entry => entry[L2_VALUE_FIELD]);
-        const l3Values = data.map(entry => entry[L3_VALUE_FIELD]);
+        // Odwracanie danych, aby najnowsze były po prawej stronie
+        const labels = data.map(entry => entry[TIME_FIELD]).reverse();
+        const l1Values = data.map(entry => entry[L1_VALUE_FIELD]).reverse();
+        const l2Values = data.map(entry => entry[L2_VALUE_FIELD]).reverse();
+        const l3Values = data.map(entry => entry[L3_VALUE_FIELD]).reverse();
 
         const ctx = document.getElementById('myChart').getContext('2d');
 
@@ -80,6 +81,64 @@ $(document).ready(function() {
         fetchData(numRecords, macAddress, location);
     });
 
+    $('#chart-form').submit(function(event) {
+        event.preventDefault();
+
+        const macAddress = $('#mac-address-chart').val();
+        const location = $('#location-chart').val();
+        const startDate = $('#start-date-chart').val();
+        const endDate = $('#end-date-chart').val();
+
+        fetchDataForChart(macAddress, location, startDate, endDate);
+    });
+
+    // document.getElementById('chart-form').addEventListener('submit', function(event) {
+    //     event.preventDefault();
+    
+    //     const macAddress = document.getElementById('mac-address-chart').value;
+    //     const location = document.getElementById('location-chart').value;
+    //     const startDate = document.getElementById('start-date-chart').value;
+    //     const endDate = document.getElementById('end-date-chart').value;
+    
+    //     fetchDataForChart(macAddress, location, startDate, endDate);
+    // });
+
+    // document.addEventListener('DOMContentLoaded', function() {
+    //     const endDate = new Date();
+    //     const startDate = new Date(endDate.getTime() - (6 * 60 * 60 * 1000)); // 6 godzin wstecz
+    
+    //     document.getElementById('end-date-chart').value = endDate.toISOString().slice(0, 16);
+    //     document.getElementById('start-date-chart').value = startDate.toISOString().slice(0, 16);
+    // });
+
+    // function loadOptions() {
+    //     $.ajax({
+    //         url: '/get_mac_and_locations',
+    //         type: 'GET',
+    //         dataType: 'json',
+    //         success: function(data) {
+    //             console.log("Received data:", data);  // Dodaj logowanie otrzymanych danych
+    //             const macSelect = document.getElementById('mac-address-chart');
+    //             const locationSelect = document.getElementById('location-chart');
+    
+    //             data.macs.forEach(mac => {
+    //                 const option = new Option(mac, mac);
+    //                 macSelect.appendChild(option);
+    //             });
+    
+    //             data.locations.forEach(location => {
+    //                 const option = new Option(location, location);
+    //                 locationSelect.appendChild(option);
+    //             });
+    //         },
+    //         error: function(xhr, status, error) {
+    //             console.error("Failed to load MAC addresses and locations:", status, error);
+    //         }
+    //     });
+    // }
+    
+    // document.addEventListener('DOMContentLoaded', loadOptions);
+
     function fetchData(numRecords, macAddress, location) {
         $.ajax({
             url: '/fetch_data',
@@ -97,6 +156,27 @@ $(document).ready(function() {
             },
             error: function(xhr, status, error) {
                 console.error("Failed to fetch data:", status, error);
+            }
+        });
+    }
+
+    function fetchDataForChart(macAddress, location, startDate, endDate) {
+        $.ajax({
+            url: '/fetch_chart_data',
+            type: 'GET',
+            data: {
+                mac_address: macAddress,
+                location: location,
+                start_date: startDate,
+                end_date: endDate
+            },
+            dataType: 'json',
+            success: function(data) {
+                console.log("Fetched data for chart: ", data);
+                drawChart(data);
+            },
+            error: function(xhr, status, error) {
+                console.error("Failed to fetch data for chart:", status, error);
             }
         });
     }

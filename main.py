@@ -28,6 +28,14 @@ def get_unique_mac_addresses_with_locations():
     connection.close()
     return result
 
+@app.route('/get_mac_and_locations')
+def get_mac_and_locations():
+    results = get_unique_mac_addresses_with_locations()
+    macs = [result['mac'] for result in results]
+    locations = [result['location'] for result in results]
+
+    return jsonify({'macs': list(set(macs)), 'locations': list(set(locations))})
+
 @app.route('/')
 def home():
     unique_mac_addresses_with_locations = get_unique_mac_addresses_with_locations()
@@ -61,6 +69,44 @@ def fetch_data():
     cursor.execute(query, params)
     data = cursor.fetchall()
     # print('data: ', data)
+    cursor.close()
+    connection.close()
+
+    for entry in data:
+        entry['TIME'] = entry['TIME'].strftime('%Y-%m-%d %H:%M:%S')
+
+    return jsonify(data)
+
+@app.route('/fetch_chart_data')
+def fetch_chart_data():
+    mac_address = request.args.get('mac_address')
+    location = request.args.get('location')
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+
+    query = "SELECT * FROM acquired_data"
+    filters = []
+    params = []
+
+    if mac_address:
+        filters.append("mac = %s")
+        params.append(mac_address)
+    if location:
+        filters.append("location = %s")
+        params.append(location)
+    if start_date and end_date:
+        filters.append("TIME BETWEEN %s AND %s")
+        params.extend([start_date, end_date])
+
+    if filters:
+        query += " WHERE " + " AND ".join(filters)
+    
+    query += " ORDER BY TIME DESC"
+
+    connection = create_db_connection()
+    cursor = connection.cursor(dictionary=True)
+    cursor.execute(query, params)
+    data = cursor.fetchall()
     cursor.close()
     connection.close()
 
