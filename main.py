@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, redirect, url_for
 import mysql.connector
 from mysql.connector import Error
 
@@ -28,6 +28,19 @@ def get_unique_mac_addresses_with_locations():
     connection.close()
     return result
 
+def get_devices_and_locations():
+    connection = create_db_connection()
+    cursor = connection.cursor(dictionary=True)
+    cursor.execute('SELECT MAC FROM devices')   
+    devices = cursor.fetchall()    
+    cursor.execute('SELECT NAME FROM locations')
+    locations = cursor.fetchall()
+    
+    cursor.close()
+    connection.close()
+    return devices, locations
+
+
 @app.route('/get_mac_and_locations')
 def get_mac_and_locations():
     results = get_unique_mac_addresses_with_locations()
@@ -36,10 +49,24 @@ def get_mac_and_locations():
 
     return jsonify({'macs': list(set(macs)), 'locations': list(set(locations))})
 
+@app.route('/update', methods=['POST'])
+def update_location():
+    mac = request.form['mac']
+    location = request.form['location']
+    connection = create_db_connection()
+    cursor = connection.cursor(dictionary=True)
+    query = ('UPDATE devices SET LOCATION = %s WHERE MAC = %s')
+    cursor.execute(query, (location, mac))
+    connection.commit()
+    cursor.close()
+    connection.close()
+    return redirect(url_for('home'))
+
 @app.route('/')
 def home():
     unique_mac_addresses_with_locations = get_unique_mac_addresses_with_locations()
-    return render_template('index.html', unique_mac_addresses_with_locations=unique_mac_addresses_with_locations)
+    devices, locations = get_devices_and_locations()
+    return render_template('index.html', unique_mac_addresses_with_locations=unique_mac_addresses_with_locations, devices=devices, locations=locations)
 
 @app.route('/fetch_data')
 def fetch_data():

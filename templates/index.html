@@ -57,24 +57,41 @@
             <!-- Dane zostaną tutaj wstawione dynamicznie -->
         </tbody>
     </table>  
-    <form id="chart-form">
-        <select id="mac-address-chart" name="mac-address-chart">
-            <option value="">All</option>
-            {% for item in unique_mac_addresses_with_locations %}
-                <option value="{{ item.mac }}">{{ item.mac }}</option>
-            {% endfor %}
-        </select>
-        <select id="location-chart" name="location-chart">
-            <option value="">All</option>
-            {% for item in unique_mac_addresses_with_locations %}
-                <option value="{{ item.location }}">{{ item.location }}</option>
-            {% endfor %}
-        </select>
-        <input type="datetime-local" id="start-date-chart" name="start-date-chart">
-        <input type="datetime-local" id="end-date-chart" name="end-date-chart">
-        <button type="submit">Wyświetl wykres</button>
-    </form>
+<form id="chart-form">
+    <select id="mac-address-chart" name="mac-address-chart">
+        <option value="">All</option>
+        {% for item in unique_mac_addresses_with_locations %}
+            <option value="{{ item.mac }}">{{ item.mac }}</option>
+        {% endfor %}
+    </select>
+    <select id="location-chart" name="location-chart">
+        <option value="">All</option>
+        {% for item in unique_mac_addresses_with_locations %}
+            <option value="{{ item.location }}">{{ item.location }}</option>
+        {% endfor %}
+    </select>
+    <input type="datetime-local" id="start-date-chart" name="start-date-chart">
+    <input type="datetime-local" id="end-date-chart" name="end-date-chart">
+    <button type="submit">Wyświetl wykres</button>
+</form>
     <canvas id="myChart" style="width:100%;max-width:700px"></canvas>
+
+<h1>Update Device Location</h1>
+<form action="/update" method="post">
+    <label for="mac">Choose a MAC address:</label>
+    <select name="mac" id="mac">
+        {% for device in devices %}
+        <option value="{{ device['MAC'] }}">{{ device['MAC'] }}</option>
+        {% endfor %}
+    </select>
+    <label for="location">Choose a new location:</label>
+    <select name="location" id="location">
+        {% for location in locations %}
+        <option value="{{ location['NAME'] }}">{{ location['NAME'] }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit">Update Location</button>
+</form>
 
 </body>
 </html>

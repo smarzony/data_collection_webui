@@ -9,6 +9,10 @@ $(document).ready(function() {
     let chartInstance = null;
 
     function drawChart(data) {
+        if (chartInstance) {
+            chartInstance.destroy();
+            console.log("Chart destroyed!");
+        }
         // Sortowanie danych od najstarszych do najnowszych
         data.sort((a, b) => new Date(a[TIME_FIELD]) - new Date(b[TIME_FIELD]));
 
@@ -19,7 +23,8 @@ $(document).ready(function() {
         const l3Values = data.map(entry => entry[L3_VALUE_FIELD]).reverse();
     
         const ctx = document.getElementById('myChart').getContext('2d');
-        const chart = new Chart(ctx, {
+        // const chart = new Chart(ctx, {
+            chartInstance = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: labels,
@@ -80,6 +85,28 @@ $(document).ready(function() {
         const endDate = $('#end-date-chart').val();
 
         fetchDataForChart(macAddress, location, startDate, endDate);
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Inicjalizacja flatpickr
+        flatpickr("#start-date-chart", {
+            enableTime: true,
+            dateFormat: "Y-m-d H:i",
+            time_24hr: true
+        });
+    
+        flatpickr("#end-date-chart", {
+            enableTime: true,
+            dateFormat: "Y-m-d H:i",
+            time_24hr: true
+        });
+    
+        // Obsługa przycisku "Teraz"
+        document.getElementById('set-now-button').addEventListener('click', function() {
+            var now = new Date();
+            var nowFormatted = flatpickr.formatDate(now, "Y-m-d H:i");
+            document.getElementById('end-date-chart').value = nowFormatted;
+        });
     });
 
     function fetchData(numRecords, macAddress, location) {
